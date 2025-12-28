@@ -34,11 +34,21 @@ gh auth setup-git
 git fetch origin
 git reset --hard origin/main || git reset --hard origin/master
 
-# Check ADB availability (with 10 second timeout)
+# Check ADB availability (with debugging)
 ADB_CONTEXT=""
 if [ -n "$PHONE_IP" ]; then
-    echo "Attempting ADB connection to $PHONE_IP:$PHONE_PORT..."
-    if timeout 10 adb connect "$PHONE_IP:$PHONE_PORT" 2>/dev/null | grep -q "connected"; then
+    echo "=== ADB Debug Info ==="
+    echo "Target: $PHONE_IP:$PHONE_PORT"
+    echo "Tailscale status:"
+    tailscale status 2>&1 | head -10 || echo "tailscale status failed"
+    echo "Checking connectivity to phone..."
+    tailscale ping -c 1 "$PHONE_IP" 2>&1 || echo "tailscale ping failed"
+    echo "Current ADB devices:"
+    adb devices 2>&1
+    echo "Attempting ADB connection..."
+    ADB_OUTPUT=$(timeout 15 adb connect "$PHONE_IP:$PHONE_PORT" 2>&1)
+    echo "ADB connect output: $ADB_OUTPUT"
+    if echo "$ADB_OUTPUT" | grep -qE "connected|already"; then
         ADB_CONTEXT="
 ## ADB Access (available)
 Phone is reachable at $PHONE_IP:$PHONE_PORT. You can:
