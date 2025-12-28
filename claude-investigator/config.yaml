@@ -1,6 +1,6 @@
 name: "Claude Investigator"
 description: "Automated bug investigation with Claude Code CLI"
-version: "0.1.1"
+version: "0.2.0"
 slug: "claude_investigator"
 init: false
 
@@ -17,12 +17,14 @@ ingress: false
 host_network: true
 
 options:
+  claude_credentials: ""
   github_token: ""
   tailscale_phone_ip: ""
   phone_adb_port: 5555
   default_app_package: "com.fivethreeone.tracker"
 
 schema:
+  claude_credentials: str
   github_token: str
   tailscale_phone_ip: str?
   phone_adb_port: int?

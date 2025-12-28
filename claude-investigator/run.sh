@@ -6,6 +6,7 @@ echo "=== Claude Investigator Add-on Starting ==="
 # Read config from HA options.json using jq
 CONFIG_PATH=/data/options.json
 if [ -f "$CONFIG_PATH" ]; then
+    CLAUDE_CREDENTIALS=$(jq -r '.claude_credentials // empty' "$CONFIG_PATH")
     GITHUB_TOKEN=$(jq -r '.github_token // empty' "$CONFIG_PATH")
     TAILSCALE_PHONE_IP=$(jq -r '.tailscale_phone_ip // empty' "$CONFIG_PATH")
     PHONE_ADB_PORT=$(jq -r '.phone_adb_port // 5555' "$CONFIG_PATH")
@@ -13,10 +14,24 @@ if [ -f "$CONFIG_PATH" ]; then
     echo "Config loaded from $CONFIG_PATH"
 else
     echo "WARNING: No config file found at $CONFIG_PATH"
+    CLAUDE_CREDENTIALS="${CLAUDE_CREDENTIALS:-}"
     GITHUB_TOKEN="${GITHUB_TOKEN:-}"
     TAILSCALE_PHONE_IP="${TAILSCALE_PHONE_IP:-}"
     PHONE_ADB_PORT="${PHONE_ADB_PORT:-5555}"
     DEFAULT_APP_PACKAGE="${DEFAULT_APP_PACKAGE:-com.fivethreeone.tracker}"
+fi
+
+# Configure Claude Code credentials
+if [ -n "$CLAUDE_CREDENTIALS" ]; then
+    # Claude Code on Linux stores credentials via libsecret/keyring
+    # We'll use a credentials file approach instead
+    CLAUDE_CREDS_DIR="/data/.config/claude-code"
+    mkdir -p "$CLAUDE_CREDS_DIR"
+    echo "$CLAUDE_CREDENTIALS" > "$CLAUDE_CREDS_DIR/credentials.json"
+    chmod 600 "$CLAUDE_CREDS_DIR/credentials.json"
+    echo "Claude credentials configured"
+else
+    echo "WARNING: No Claude credentials configured - investigations will fail"
 fi
 
 # Configure GitHub CLI
