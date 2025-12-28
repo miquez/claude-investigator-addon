@@ -20,15 +20,17 @@ PHONE_PORT="${PHONE_ADB_PORT:-5555}"
 APP_PACKAGE="${DEFAULT_APP_PACKAGE:-com.fivethreeone.tracker}"
 REPO_PATH="/data/repos/$REPO"
 
-# Ensure repo is cloned and up to date
+# Ensure repo is cloned and up to date (use gh for auth)
 if [ ! -d "$REPO_PATH" ]; then
     echo "Cloning repository..."
     mkdir -p "$(dirname "$REPO_PATH")"
-    git clone "https://github.com/$REPO.git" "$REPO_PATH"
+    gh repo clone "$REPO" "$REPO_PATH"
 fi
 
 cd "$REPO_PATH"
 echo "Pulling latest changes..."
+# Configure git to use gh for credentials
+gh auth setup-git
 git fetch origin
 git reset --hard origin/main || git reset --hard origin/master
 
