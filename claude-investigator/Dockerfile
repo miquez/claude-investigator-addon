@@ -17,6 +17,9 @@ RUN apk add --no-cache \
     libsecret \
     gnome-keyring \
     dbus \
+    dbus-x11 \
+    py3-secretstorage \
+    py3-keyring \
     && npm config set registry https://registry.npmjs.org/ \
     && npm config set fetch-retries 3 \
     && npm config set fetch-retry-mintimeout 20000 \

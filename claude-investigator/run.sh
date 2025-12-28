@@ -6,7 +6,7 @@ echo "=== Claude Investigator Add-on Starting ==="
 # Read config from HA options.json using jq
 CONFIG_PATH=/data/options.json
 if [ -f "$CONFIG_PATH" ]; then
-    CLAUDE_CREDENTIALS=$(jq -r '.claude_credentials // empty' "$CONFIG_PATH")
+    ANTHROPIC_API_KEY=$(jq -r '.anthropic_api_key // empty' "$CONFIG_PATH")
     GITHUB_TOKEN=$(jq -r '.github_token // empty' "$CONFIG_PATH")
     TAILSCALE_AUTH_KEY=$(jq -r '.tailscale_auth_key // empty' "$CONFIG_PATH")
     TAILSCALE_PHONE_IP=$(jq -r '.tailscale_phone_ip // empty' "$CONFIG_PATH")
@@ -15,7 +15,7 @@ if [ -f "$CONFIG_PATH" ]; then
     echo "Config loaded from $CONFIG_PATH"
 else
     echo "WARNING: No config file found at $CONFIG_PATH"
-    CLAUDE_CREDENTIALS="${CLAUDE_CREDENTIALS:-}"
+    ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}"
     GITHUB_TOKEN="${GITHUB_TOKEN:-}"
     TAILSCALE_AUTH_KEY="${TAILSCALE_AUTH_KEY:-}"
     TAILSCALE_PHONE_IP="${TAILSCALE_PHONE_IP:-}"
@@ -23,29 +23,12 @@ else
     DEFAULT_APP_PACKAGE="${DEFAULT_APP_PACKAGE:-com.fivethreeone.tracker}"
 fi
 
-# Start dbus and gnome-keyring for credential storage
-mkdir -p /run/dbus
-dbus-daemon --system --fork 2>/dev/null || true
-eval $(dbus-launch --sh-syntax)
-export DBUS_SESSION_BUS_ADDRESS
-
-# Initialize gnome-keyring with empty password
-mkdir -p /data/.local/share/keyrings
-echo -n "" | gnome-keyring-daemon --unlock --replace --components=secrets 2>/dev/null || true
-
-# Configure Claude Code credentials
-if [ -n "$CLAUDE_CREDENTIALS" ]; then
-    # Store credentials in gnome-keyring using secret-tool
-    echo "$CLAUDE_CREDENTIALS" | secret-tool store --label="Claude Code" service "Claude Code-credentials" account "credentials" 2>/dev/null || {
-        echo "WARNING: Could not store in keyring, trying file fallback"
-        CLAUDE_CREDS_DIR="/data/.config/claude-code"
-        mkdir -p "$CLAUDE_CREDS_DIR"
-        echo "$CLAUDE_CREDENTIALS" > "$CLAUDE_CREDS_DIR/credentials.json"
-        chmod 600 "$CLAUDE_CREDS_DIR/credentials.json"
-    }
-    echo "Claude credentials configured"
+# Configure Anthropic API key
+if [ -n "$ANTHROPIC_API_KEY" ]; then
+    export ANTHROPIC_API_KEY
+    echo "Anthropic API key configured"
 else
-    echo "WARNING: No Claude credentials configured - investigations will fail"
+    echo "WARNING: No Anthropic API key configured - investigations will fail"
 fi
 
 # Configure GitHub CLI
@@ -72,6 +55,7 @@ fi
 
 # Export environment for investigate.sh
 export HOME=/data
+export ANTHROPIC_API_KEY
 export GITHUB_TOKEN
 export TAILSCALE_PHONE_IP
 export PHONE_ADB_PORT
