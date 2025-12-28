@@ -1,6 +1,6 @@
 name: "Claude Investigator"
 description: "Automated bug investigation with Claude Code CLI"
-version: "0.7.1"
+version: "0.7.2"
 slug: "claude_investigator"
 init: false
 

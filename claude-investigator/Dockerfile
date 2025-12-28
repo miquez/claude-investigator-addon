@@ -39,8 +39,10 @@ RUN ARCH=$(uname -m) && \
     cp /tmp/tailscale_*/tailscaled /usr/sbin/ && \
     rm -rf /tmp/tailscale*
 
-# Create directories
-RUN mkdir -p /data/repos /data/claude-config /data/logs
+# Create non-root user for Claude (--dangerously-skip-permissions requires non-root)
+RUN adduser -D -h /home/claude claude && \
+    mkdir -p /data/repos /data/claude-config /data/logs && \
+    chown -R claude:claude /data
 
 # Set working directory
 WORKDIR /data

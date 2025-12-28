@@ -83,13 +83,13 @@ fi
 
 # Log file for this investigation
 LOG_FILE="/data/logs/investigation-${REPO//\//-}-$ISSUE-$(date +%Y%m%d-%H%M%S).log"
+PROMPT_FILE="/tmp/claude-prompt-$$.txt"
 
 echo "Running Claude investigation..."
 echo "Log file: $LOG_FILE"
 
-# Run Claude with the investigation prompt (skip permissions for automation)
-# Note: Don't use -p flag as it prevents tool execution
-claude --dangerously-skip-permissions "
+# Write prompt to temp file (handles complex quoting)
+cat > "$PROMPT_FILE" << PROMPT_EOF
 You are investigating issue #$ISSUE in the $REPO repository.
 
 ## Instructions
@@ -134,7 +134,17 @@ _Investigation completed: $(date -u +"%Y-%m-%d %H:%M UTC")_'
 
 IMPORTANT: You must actually run the gh issue comment command to post your findings.
 Do not just output what you would post - actually execute the command.
-" 2>&1 | tee "$LOG_FILE"
+PROMPT_EOF
+
+# Ensure claude user can access everything needed
+chown -R claude:claude /data "$PROMPT_FILE"
+chmod 644 "$PROMPT_FILE"
+
+# Run Claude as non-root user (--dangerously-skip-permissions requires it)
+PROMPT=$(cat "$PROMPT_FILE")
+su -s /bin/bash -c "cd '$REPO_PATH' && HOME=/data claude --dangerously-skip-permissions \"\$PROMPT\"" claude 2>&1 | tee "$LOG_FILE"
+
+rm -f "$PROMPT_FILE"
 
 echo "=== Investigation Complete ==="
 echo "Results posted to: https://github.com/$REPO/issues/$ISSUE"
