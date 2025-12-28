@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+- Feature: Built-in Tailscale support for ADB over VPN
+- Add tailscale_auth_key config option
+- ADB timeout reduced to 10 seconds
+
 ## 0.3.0
 
 - Feature: Add HTTP API server on port 8099 for triggering investigations

@@ -1,7 +1,7 @@
 ARG BUILD_FROM
 FROM ${BUILD_FROM}
 
-# Install packages: Node.js, npm, git, gh CLI, adb, bash utilities
+# Install packages: Node.js, npm, git, gh CLI, adb, tailscale, bash utilities
 RUN apk add --no-cache \
     nodejs \
     npm \
@@ -12,6 +12,8 @@ RUN apk add --no-cache \
     openssh-client \
     android-tools \
     github-cli \
+    tailscale \
+    iptables \
     && npm config set registry https://registry.npmjs.org/ \
     && npm config set fetch-retries 3 \
     && npm config set fetch-retry-mintimeout 20000 \
