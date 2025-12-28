@@ -6,7 +6,7 @@ echo "=== Claude Investigator Add-on Starting ==="
 # Read config from HA options.json using jq
 CONFIG_PATH=/data/options.json
 if [ -f "$CONFIG_PATH" ]; then
-    ANTHROPIC_API_KEY=$(jq -r '.anthropic_api_key // empty' "$CONFIG_PATH")
+    CLAUDE_CREDENTIALS=$(jq -r '.claude_credentials // empty' "$CONFIG_PATH")
     GITHUB_TOKEN=$(jq -r '.github_token // empty' "$CONFIG_PATH")
     TAILSCALE_AUTH_KEY=$(jq -r '.tailscale_auth_key // empty' "$CONFIG_PATH")
     TAILSCALE_PHONE_IP=$(jq -r '.tailscale_phone_ip // empty' "$CONFIG_PATH")
@@ -15,7 +15,7 @@ if [ -f "$CONFIG_PATH" ]; then
     echo "Config loaded from $CONFIG_PATH"
 else
     echo "WARNING: No config file found at $CONFIG_PATH"
-    ANTHROPIC_API_KEY="${ANTHROPIC_API_KEY:-}"
+    CLAUDE_CREDENTIALS="${CLAUDE_CREDENTIALS:-}"
     GITHUB_TOKEN="${GITHUB_TOKEN:-}"
     TAILSCALE_AUTH_KEY="${TAILSCALE_AUTH_KEY:-}"
     TAILSCALE_PHONE_IP="${TAILSCALE_PHONE_IP:-}"
@@ -23,12 +23,28 @@ else
     DEFAULT_APP_PACKAGE="${DEFAULT_APP_PACKAGE:-com.fivethreeone.tracker}"
 fi
 
-# Configure Anthropic API key
-if [ -n "$ANTHROPIC_API_KEY" ]; then
-    export ANTHROPIC_API_KEY
-    echo "Anthropic API key configured"
+# Set up dbus and gnome-keyring for Claude Code credentials
+mkdir -p /run/dbus /data/.local/share/keyrings
+rm -f /run/dbus/pid
+dbus-daemon --system --fork 2>/dev/null || true
+
+# Start dbus session
+export $(dbus-launch)
+echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS"
+
+# Start gnome-keyring with empty password for headless operation
+echo "" | gnome-keyring-daemon --start --unlock --components=secrets 2>/dev/null &
+sleep 1
+
+# Configure Claude Code credentials in keyring
+if [ -n "$CLAUDE_CREDENTIALS" ]; then
+    echo "$CLAUDE_CREDENTIALS" | secret-tool store --label="Claude Code-credentials" service "Claude Code-credentials" account "default" 2>/dev/null && {
+        echo "Claude credentials stored in keyring"
+    } || {
+        echo "WARNING: Could not store credentials in keyring"
+    }
 else
-    echo "WARNING: No Anthropic API key configured - investigations will fail"
+    echo "WARNING: No Claude credentials configured - investigations will fail"
 fi
 
 # Configure GitHub CLI
@@ -55,7 +71,7 @@ fi
 
 # Export environment for investigate.sh
 export HOME=/data
-export ANTHROPIC_API_KEY
+export DBUS_SESSION_BUS_ADDRESS
 export GITHUB_TOKEN
 export TAILSCALE_PHONE_IP
 export PHONE_ADB_PORT

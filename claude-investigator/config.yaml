@@ -1,6 +1,6 @@
 name: "Claude Investigator"
 description: "Automated bug investigation with Claude Code CLI"
-version: "0.5.0"
+version: "0.5.1"
 slug: "claude_investigator"
 init: false
 
@@ -23,7 +23,7 @@ privileged:
   - SYS_MODULE
 
 options:
-  anthropic_api_key: ""
+  claude_credentials: ""
   github_token: ""
   tailscale_auth_key: ""
   tailscale_phone_ip: ""
@@ -31,7 +31,7 @@ options:
   default_app_package: "com.fivethreeone.tracker"
 
 schema:
-  anthropic_api_key: str
+  claude_credentials: str
   github_token: str
   tailscale_auth_key: str?
   tailscale_phone_ip: str?
