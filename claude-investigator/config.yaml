@@ -1,6 +1,6 @@
 name: "Claude Investigator"
 description: "Automated bug investigation with Claude Code CLI"
-version: "0.5.1"
+version: "0.6.0"
 slug: "claude_investigator"
 init: false
 
@@ -10,8 +10,10 @@ arch:
 
 url: "https://github.com/miquez/claude-investigator-addon"
 
-# No ingress - this is a headless add-on
-ingress: false
+# Enable ingress for web terminal (one-time OAuth login)
+ingress: true
+ingress_port: 7681
+panel_icon: "mdi:console"
 
 # Use host network to access Tailscale VPN for ADB
 host_network: true

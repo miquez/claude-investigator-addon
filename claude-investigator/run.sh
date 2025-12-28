@@ -23,28 +23,15 @@ else
     DEFAULT_APP_PACKAGE="${DEFAULT_APP_PACKAGE:-com.fivethreeone.tracker}"
 fi
 
-# Set up dbus and gnome-keyring for Claude Code credentials
-mkdir -p /run/dbus /data/.local/share/keyrings
-rm -f /run/dbus/pid
-dbus-daemon --system --fork 2>/dev/null || true
-
-# Start dbus session
-export $(dbus-launch)
-echo "DBUS_SESSION_BUS_ADDRESS=$DBUS_SESSION_BUS_ADDRESS"
-
-# Start gnome-keyring with empty password for headless operation
-echo "" | gnome-keyring-daemon --start --unlock --components=secrets 2>/dev/null &
-sleep 1
-
-# Configure Claude Code credentials in keyring
-if [ -n "$CLAUDE_CREDENTIALS" ]; then
-    echo "$CLAUDE_CREDENTIALS" | secret-tool store --label="Claude Code-credentials" service "Claude Code-credentials" account "default" 2>/dev/null && {
-        echo "Claude credentials stored in keyring"
-    } || {
-        echo "WARNING: Could not store credentials in keyring"
-    }
-else
-    echo "WARNING: No Claude credentials configured - investigations will fail"
+# Check if Claude is already authenticated
+if claude --version > /dev/null 2>&1; then
+    echo "Claude Code installed"
+    # Check auth status by trying a simple command
+    if timeout 5 claude --print "test" > /dev/null 2>&1; then
+        echo "Claude Code authenticated"
+    else
+        echo "Claude Code NOT authenticated - use web terminal to run: claude"
+    fi
 fi
 
 # Configure GitHub CLI
@@ -89,6 +76,11 @@ echo "  - Phone IP: ${TAILSCALE_PHONE_IP:-not set}"
 echo "  - ADB Port: $PHONE_ADB_PORT"
 echo "  - App Package: $DEFAULT_APP_PACKAGE"
 echo ""
+
+# Start ttyd web terminal on ingress port for Claude OAuth
+echo "Starting web terminal on port 7681 (use HA sidebar to access)..."
+ttyd -p 7681 -W bash &
+
 echo "Starting investigation server on port 8099..."
 
 # Start the HTTP server
