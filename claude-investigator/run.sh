@@ -69,7 +69,10 @@ export XDG_CONFIG_HOME=/data/.config
 export XDG_DATA_HOME=/data/.local/share
 export XDG_STATE_HOME=/data/.local/state
 export XDG_CACHE_HOME=/data/.cache
-mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" /data/logs
+mkdir -p "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" /data/logs /data/repos
+
+# Ensure claude user owns /data for headless execution
+chown -R claude:claude /data
 
 echo "Configuration:"
 echo "  - Phone IP: ${TAILSCALE_PHONE_IP:-not set}"
