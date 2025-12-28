@@ -45,10 +45,10 @@ if [ -n "$PHONE_IP" ]; then
     tailscale ping -c 1 "$PHONE_IP" 2>&1 || echo "tailscale ping failed"
     echo "Current ADB devices:"
     adb devices 2>&1
-    echo "Attempting ADB connection..."
-    ADB_OUTPUT=$(timeout 15 adb connect "$PHONE_IP:$PHONE_PORT" 2>&1)
+    echo "Attempting ADB connection (5s timeout)..."
+    ADB_OUTPUT=$(timeout 5 adb connect "$PHONE_IP:$PHONE_PORT" 2>&1) || ADB_OUTPUT="timeout"
     echo "ADB connect output: $ADB_OUTPUT"
-    if echo "$ADB_OUTPUT" | grep -qE "connected|already"; then
+    if echo "$ADB_OUTPUT" | grep -qE "connected to|already connected"; then
         ADB_CONTEXT="
 ## ADB Access (available)
 Phone is reachable at $PHONE_IP:$PHONE_PORT. You can:
