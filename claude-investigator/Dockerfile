@@ -52,8 +52,11 @@ WORKDIR /data
 # Copy scripts
 COPY run.sh /run.sh
 COPY investigate.sh /investigate.sh
+COPY investigate-issue.sh /investigate-issue.sh
+COPY worker.sh /worker.sh
+COPY queue.sh /queue.sh
 COPY server.js /server.js
-RUN chmod +x /run.sh /investigate.sh
+RUN chmod +x /run.sh /investigate.sh /investigate-issue.sh /worker.sh /queue.sh
 
 # Default command keeps container running
 CMD ["/run.sh"]
